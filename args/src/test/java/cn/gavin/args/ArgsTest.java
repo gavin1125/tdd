@@ -1,6 +1,7 @@
 package cn.gavin.args;
 
 import cn.gavin.args.exceptions.IllegalOptionException;
+import cn.gavin.args.exceptions.UnsupportedOptionTypeException;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
@@ -23,22 +24,33 @@ public class ArgsTest {
     public void should_throw_illegal_option_exception_if_annotation_not_present() {
         IllegalOptionException e = assertThrows(IllegalOptionException.class, () -> Args.parse(OptionWithoutAnnotation.class, "-l", "-p", "8080", "-d", "/usr/logs"));
 
-        assertEquals("port",e.getParameter());
+        assertEquals("port", e.getParameter());
     }
 
     record OptionWithoutAnnotation(@Option("l") boolean logging, int port, @Option("d") String directory) {
     }
 
+    @Test
+    public void should_raise_exception_if_type_not_supported() {
+        UnsupportedOptionTypeException e = assertThrows(UnsupportedOptionTypeException.class,
+                () -> Args.parse(OptionsWithUnsupportedType.class, "-l", "abc"));
+
+        assertEquals("l", e.getOption());
+        assertEquals(Object.class, e.getType());
+    }
+
+    record OptionsWithUnsupportedType(@Option("l") Object logging) {
+    }
+
     //-g this is a list -d 1 2 -3 5
     @Test
-    @Disabled
     public void should_example_2() {
         ListOptions options = Args.parse(ListOptions.class, "-g", "this", "is", "a", "list", "-d", "1", "2", "-3", "5");
 
         assertArrayEquals(new String[]{"this", "is", "a", "list"}, options.group());
-        assertArrayEquals(new int[]{1, 2, -3, 5}, options.decimals());
+        assertArrayEquals(new Integer[]{1, 2, -3, 5}, options.decimals());
     }
 
-    record ListOptions(@Option("g") String[] group, @Option("d") int[] decimals) {
+    record ListOptions(@Option("g") String[] group, @Option("d") Integer[] decimals) {
     }
 }
