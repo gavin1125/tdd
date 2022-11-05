@@ -1,4 +1,4 @@
-package cn.gavin.args;
+package cn.gavin.args.exceptions;
 
 public class InsufficientArgumentsException extends RuntimeException {
     private String option;

@@ -1,5 +1,7 @@
 package cn.gavin.args;
 
+import cn.gavin.args.exceptions.IllegalOptionException;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Parameter;
 import java.util.Arrays;
@@ -28,7 +30,7 @@ public class Args {
     }
 
     private static Map<Class<?>, OptionParser> PARSERS = Map.of(
-            boolean.class, new BooleanOptionParser(),
-            int.class, new SingleValuedOptionParser<>(0, Integer::parseInt),
-            String.class, new SingleValuedOptionParser<>("", String::valueOf));
+            boolean.class, OptionParsers.bool(),
+            int.class, OptionParsers.unary(0, Integer::parseInt),
+            String.class, OptionParsers.unary("", String::valueOf));
 }
