@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.InOrder;
+import org.mockito.Mockito;
 
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
@@ -14,6 +16,7 @@ import java.util.function.Function;
 
 import static java.util.Arrays.asList;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 public class OptionParsersTest {
 
@@ -45,10 +48,16 @@ public class OptionParsersTest {
 
         @Test // happy path
         public void should_parse_value_if_flag_present() {
-            Object parsed = new Object();
-            Function<String, Object> parse = it -> parsed;
-            Object whatever = new Object();
-            assertEquals(parsed, OptionParsers.unary(whatever, parse).parse(Arrays.asList("-p", "8080"), option("p")));
+//            Object parsed = new Object();
+//            Function<String, Object> parse = it -> parsed;
+//            Object whatever = new Object();
+//            assertEquals(parsed, OptionParsers.unary(whatever, parse).parse(Arrays.asList("-p", "8080"), option("p")));
+
+            Function parser = mock(Function.class);
+
+            OptionParsers.unary(any(), parser).parse(asList("-p", "8080"), option("p"));
+
+            verify(parser).apply("8080");
         }
 
         @Test
@@ -89,11 +98,18 @@ public class OptionParsersTest {
     class ListOptionParser {
         @Test
         public void should_parse_list_value() {
-            assertArrayEquals(new String[]{"this", "is"}, OptionParsers.list(String[]::new, String::valueOf).parse(asList("-g", "this", "is"), option("g")));
+            Function parser = mock(Function.class);
+
+            OptionParsers.list(Object[]::new, parser).parse(asList("-g", "this", "is"), option("g"));
+
+            InOrder order = inOrder(parser, parser);
+            order.verify(parser).apply("this");
+            order.verify(parser).apply("is");
+            //assertArrayEquals(new String[]{"this", "is"}, OptionParsers.list(String[]::new, String::valueOf).parse(asList("-g", "this", "is"), option("g")));
         }
 
         @Test
-        public void should_not_treat_negative_int_as_flag(){
+        public void should_not_treat_negative_int_as_flag() {
             assertArrayEquals(new Integer[]{-1, -2}, OptionParsers.list(Integer[]::new, Integer::parseInt).parse(asList("-g", "-1", "-2"), option("g")));
         }
 
