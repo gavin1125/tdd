@@ -2,13 +2,14 @@ package cn.gavin.args;
 
 import cn.gavin.args.exceptions.IllegalOptionException;
 import cn.gavin.args.exceptions.UnsupportedOptionTypeException;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class ArgsTest {
-
     @Test
     public void should_parse_multi_options() {
         MultiOptions options = Args.parse(MultiOptions.class, "-l", "-p", "8080", "-d", "/usr/logs");
@@ -52,5 +53,23 @@ public class ArgsTest {
     }
 
     record ListOptions(@Option("g") String[] group, @Option("d") Integer[] decimals) {
+    }
+
+    @Test
+    public void should_parse_options_if_option_parser_provided() {
+        OptionParser boolParser = Mockito.mock(OptionParser.class);
+        OptionParser intParser = Mockito.mock(OptionParser.class);
+        OptionParser stringParser = Mockito.mock(OptionParser.class);
+        Mockito.when(boolParser.parse(Mockito.any(), Mockito.any())).thenReturn(true);
+        Mockito.when(intParser.parse(Mockito.any(), Mockito.any())).thenReturn(1000);
+        Mockito.when(stringParser.parse(Mockito.any(), Mockito.any())).thenReturn("parsed");
+
+        Args<MultiOptions> args = new Args<>(MultiOptions.class, Map.of(boolean.class, boolParser, int.class, intParser, String.class, stringParser));
+
+        MultiOptions options = args.parse("-l", "-p", "8080", "-d", "/usr/logs");
+
+        assertTrue(options.logging());
+        assertEquals(1000, options.port());
+        assertEquals("parsed", options.directory());
     }
 }
