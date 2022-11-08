@@ -10,6 +10,7 @@
     <version>1.0-SNAPSHOT</version>
     <modules>
         <module>args</module>
+        <module>args-london</module>
     </modules>
 
     <properties>
